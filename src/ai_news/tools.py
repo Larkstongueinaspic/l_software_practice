@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import html
-import json
 import re
 import time
 from datetime import UTC, datetime, timedelta
 from difflib import SequenceMatcher
-from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from xml.etree import ElementTree
@@ -22,8 +20,6 @@ from ai_news.config import (
     DEFAULT_ARXIV_CATEGORIES,
     DEFAULT_HN_TERMS,
     DEFAULT_RSS_SOURCES,
-    DIGESTS_DIR,
-    TRACES_DIR,
 )
 from ai_news.models import NewsItem, RankedNewsItem
 
@@ -334,58 +330,3 @@ def deduplicate_and_rank(
 
     ranked.sort(key=lambda item: item.score, reverse=True)
     return [item.model_dump() for item in ranked[:top_k]]
-
-
-def write_digest(
-    markdown: str,
-    items: list[dict[str, Any]],
-    trace: list[dict[str, Any]],
-    date: str | None = None,
-    output_dir: str | None = None,
-) -> dict[str, Any]:
-    """Write the final Markdown digest and JSON execution trace."""
-    date_str = date or utc_now().date().isoformat()
-    output_root = Path(output_dir) if output_dir else DIGESTS_DIR.parent
-    digest_dir = output_root / "digests"
-    trace_dir = output_root / "traces"
-    digest_dir.mkdir(parents=True, exist_ok=True)
-    trace_dir.mkdir(parents=True, exist_ok=True)
-
-    digest_path = digest_dir / f"{date_str}-ai-news.md"
-    trace_path = trace_dir / f"{date_str}-run.json"
-    trace_with_write = trace + [
-        {
-            "tool": "write_digest",
-            "arguments": {
-                "markdown": {"chars": len(markdown)},
-                "items": {"count": len(items)},
-                "output_dir": str(output_root),
-            },
-            "timestamp": isoformat(utc_now()),
-            "duration_ms": 0.0,
-            "result_count": len(items),
-            "error": None,
-        }
-    ]
-    digest_path.write_text(markdown.strip() + "\n", encoding="utf-8")
-    trace_path.write_text(
-        json.dumps(
-            {
-                "date": date_str,
-                "generated_at": isoformat(utc_now()),
-                "item_count": len(items),
-                "items": items,
-                "trace": trace_with_write,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-
-    return {
-        "digest_path": str(digest_path),
-        "trace_path": str(trace_path),
-        "item_count": len(items),
-    }

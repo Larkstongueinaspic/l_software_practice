@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import feedparser
 import httpx
 
@@ -141,21 +138,3 @@ def test_deduplicate_and_rank_merges_duplicate_titles():
     assert len(ranked) == 2
     assert ranked[0]["score"] >= ranked[1]["score"]
 
-
-def test_write_digest_creates_markdown_and_trace(tmp_path: Path):
-    result = tools.write_digest(
-        markdown="# Digest",
-        items=[],
-        trace=[{"tool": "fetch_rss_items"}],
-        date="2026-06-17",
-        output_dir=str(tmp_path),
-    )
-
-    digest_path = Path(result["digest_path"])
-    trace_path = Path(result["trace_path"])
-    assert digest_path.exists()
-    assert trace_path.exists()
-    assert digest_path.read_text(encoding="utf-8").startswith("# Digest")
-    trace = json.loads(trace_path.read_text(encoding="utf-8"))["trace"]
-    assert trace[0]["tool"] == "fetch_rss_items"
-    assert trace[-1]["tool"] == "write_digest"

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "daily-ai-news-agent"
 version = "0.1.0"
-description = "A CLI MCP-based agent that collects AI news and generates a Chinese daily digest with DeepSeek."
+description = "A CLI MCP-based agent that collects AI news and answers conversationally with DeepSeek tool calls."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

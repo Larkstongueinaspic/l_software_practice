@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from mcp.server.fastmcp import FastMCP
 
 from ai_news import tools
@@ -51,18 +53,10 @@ def deduplicate_and_rank(
     return tools.deduplicate_and_rank(items=items, top_k=top_k)
 
 
-@mcp.tool()
-def write_digest(
-    markdown: str,
-    items: list[dict],
-    trace: list[dict],
-    date: str | None = None,
-    output_dir: str | None = None,
-) -> dict:
-    return tools.write_digest(markdown=markdown, items=items, trace=trace, date=date, output_dir=output_dir)
-
-
 def main() -> None:
+    logging.getLogger().setLevel(logging.WARNING)
+    logging.getLogger("mcp").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     mcp.run()
 
 

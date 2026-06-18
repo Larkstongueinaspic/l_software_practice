@@ -34,3 +34,16 @@ class ToolTrace(BaseModel):
     duration_ms: float
     result_count: int | None = None
     error: str | None = None
+
+
+class ConversationEvent(BaseModel):
+    session_id: str
+    type: str
+    timestamp: str
+    data: dict = Field(default_factory=dict)
+
+
+class NewsRequest(BaseModel):
+    question: str
+    hours: int = Field(ge=1, le=24 * 30)
+    top_k: int = Field(ge=1, le=20)

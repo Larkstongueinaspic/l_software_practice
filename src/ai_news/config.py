@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_MODEL = "deepseek-v4-flash"
+DEFAULT_MODEL = "deepseek-v4-pro"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 
 DEFAULT_RSS_SOURCES = [
@@ -40,8 +40,7 @@ AI_KEYWORDS = [
 ]
 
 ROOT_DIR = Path.cwd()
-OUTPUTS_DIR = ROOT_DIR / "outputs"
-DIGESTS_DIR = OUTPUTS_DIR / "digests"
-TRACES_DIR = OUTPUTS_DIR / "traces"
+CACHE_DIR = ROOT_DIR / "cache"
+CONVERSATIONS_DIR = CACHE_DIR / "conversations"
 LOGS_DIR = ROOT_DIR / "logs"
 LOG_FILE = LOGS_DIR / "agent.log"
