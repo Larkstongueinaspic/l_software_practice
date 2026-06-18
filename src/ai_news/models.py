@@ -19,14 +19,6 @@ class RankedNewsItem(NewsItem):
     reason: str = ""
 
 
-class Digest(BaseModel):
-    date: str
-    generated_at: str
-    items: list[RankedNewsItem]
-    overall_summary: str = ""
-    output_path: str = ""
-
-
 class ToolTrace(BaseModel):
     tool: str
     arguments: dict = Field(default_factory=dict)

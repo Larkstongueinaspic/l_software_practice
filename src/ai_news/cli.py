@@ -3,11 +3,7 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import os
-import shlex
-import subprocess
-import sys
 from datetime import datetime
-from pathlib import Path
 
 import httpx
 import typer
@@ -132,44 +128,6 @@ def history(
         table.add_row(event.timestamp, event.type, preview)
     console.print(table)
     console.print(f"Cache: {cache.path}")
-
-
-@app.command("install-cron")
-def install_cron(
-    time: str = typer.Option("08:00", help="Daily run time in HH:MM format."),
-    question: str = typer.Option("今天AI新闻有哪些？", help="Question to ask each day."),
-    top_k: int = typer.Option(5, min=1, max=20),
-    session: str = typer.Option("daily", help="Conversation cache session id."),
-    apply: bool = typer.Option(False, "--apply", help="Install into the current user's crontab."),
-) -> None:
-    """Print or install a cron entry for daily chat generation."""
-    try:
-        hour_text, minute_text = time.split(":", 1)
-        hour = int(hour_text)
-        minute = int(minute_text)
-        if not (0 <= hour <= 23 and 0 <= minute <= 59):
-            raise ValueError
-    except ValueError as exc:
-        raise typer.BadParameter("time must be HH:MM, for example 08:00") from exc
-
-    cwd = Path.cwd()
-    quoted_question = shlex.quote(question)
-    command = (
-        f"cd {cwd} && {sys.executable} -m ai_news.cli chat {quoted_question} "
-        f"--hours 24 --top-k {top_k} --session {shlex.quote(session)} >> logs/cron.log 2>&1"
-    )
-    cron_line = f"{minute} {hour} * * * {command}"
-    console.print(cron_line)
-
-    if apply:
-        existing = subprocess.run(["crontab", "-l"], check=False, capture_output=True, text=True)
-        current = existing.stdout if existing.returncode == 0 else ""
-        if cron_line not in current:
-            updated = current.rstrip() + "\n" + cron_line + "\n"
-            subprocess.run(["crontab", "-"], input=updated, text=True, check=True)
-        console.print("[bold green]Cron entry installed.[/bold green]")
-    else:
-        console.print("Use --apply to install it. Make sure DEEPSEEK_API_KEY is available to cron.")
 
 
 if __name__ == "__main__":

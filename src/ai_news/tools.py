@@ -290,6 +290,7 @@ def deduplicate_and_rank(
     top_k: int = 8,
 ) -> list[dict[str, Any]]:
     """Deduplicate items and rank them with simple transparent heuristics."""
+    now = utc_now()
     unique: list[NewsItem] = []
     seen_urls: set[str] = set()
 
@@ -317,7 +318,7 @@ def deduplicate_and_rank(
             source_weight += 0.6
 
         published = parse_datetime(item.published_at)
-        age_hours = max((utc_now() - published).total_seconds() / 3600, 0) if published else 24
+        age_hours = max((now - published).total_seconds() / 3600, 0) if published else 24
         recency_score = max(0.0, 2.0 - age_hours / 24)
         keyword_score = min(len(keyword_tags(f"{item.title} {item.summary} {item.raw_text}")) * 0.25, 1.5)
         text_score = min(len(item.raw_text) / 1500, 1.0)
