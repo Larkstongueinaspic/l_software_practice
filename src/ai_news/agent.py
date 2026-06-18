@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import sys
 import time
 from typing import Any
@@ -200,19 +201,58 @@ def parse_tool_arguments(raw_arguments: str | None) -> dict[str, Any]:
     return parsed if isinstance(parsed, dict) else {}
 
 
-def sanitize_assistant_output(content: str) -> str:
-    cleaned_lines: list[str] = []
-    for line in content.splitlines():
+STRUCTURED_OUTPUT_RE = re.compile(
+    r"^("
+    r"\d+[\.\、)]\s+|"
+    r"(标题|来源|时间|摘要|重要性|为什么重要|链接|原始链接)[:：]"
+    r")"
+)
+LABEL_ONLY_RE = re.compile(r"^(标题|来源|时间|摘要|重要性|为什么重要|链接|原始链接)[:：]\s*$")
+URL_CONTINUATION_RE = re.compile(r"https?://\S*$")
+
+
+def continuation_separator(previous: str) -> str:
+    if LABEL_ONLY_RE.match(previous):
+        return ""
+    if URL_CONTINUATION_RE.search(previous) or previous.endswith(("/", "?", "&", "=", "-", "_")):
+        return ""
+    return " "
+
+
+def normalize_assistant_linebreaks(lines: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for line in lines:
         stripped = line.strip()
         if stripped in {"---", "***", "___"}:
             continue
         stripped = stripped.lstrip("#").strip() if stripped.startswith("#") else stripped
-        cleaned_lines.append(stripped.replace("**", "").replace("__", "").strip())
-    while cleaned_lines and not cleaned_lines[0]:
-        cleaned_lines.pop(0)
-    while cleaned_lines and not cleaned_lines[-1]:
-        cleaned_lines.pop()
-    return "\n".join(cleaned_lines)
+        stripped = stripped.replace("**", "").replace("__", "").strip()
+
+        if not stripped:
+            if normalized and normalized[-1]:
+                normalized.append("")
+            continue
+
+        if not normalized or not normalized[-1]:
+            normalized.append(stripped)
+            continue
+
+        if STRUCTURED_OUTPUT_RE.match(stripped):
+            normalized.append(stripped)
+            continue
+
+        separator = continuation_separator(normalized[-1])
+        normalized[-1] = f"{normalized[-1]}{separator}{stripped}".strip()
+
+    while normalized and not normalized[0]:
+        normalized.pop(0)
+    while normalized and not normalized[-1]:
+        normalized.pop()
+    return normalized
+
+
+def sanitize_assistant_output(content: str) -> str:
+    return "\n".join(normalize_assistant_linebreaks(content.splitlines()))
 
 
 def tool_result_message(tool_call_id: str, result: Any) -> dict[str, str]:
@@ -532,5 +572,5 @@ async def run_interactive_session(
             mock_llm=mock_llm,
             cache_user=False,
         )
-        output_func(result["content"])
+        output_func(f"助手>\n{result['content']}")
         intake_messages = [{"role": "system", "content": INTAKE_SYSTEM_PROMPT}]

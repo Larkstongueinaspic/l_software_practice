@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">交互式 AI 新闻 Agent 架构设计图</title>
+  <desc id="desc">展示用户、CLI、DeepSeek、Agent 编排层、本地 MCP Server、外部新闻源、JSONL 缓存和终端输出之间的数据流。</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fafc"/>
+      <stop offset="100%" stop-color="#eef4f8"/>
+    </linearGradient>
+    <linearGradient id="cliGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d9f99d"/>
+      <stop offset="100%" stop-color="#86efac"/>
+    </linearGradient>
+    <linearGradient id="agentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+    <linearGradient id="mcpGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="modelGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ede9fe"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 28px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 14px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #475569; }
+      .box-title { font: 700 18px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #0f172a; }
+      .box-text { font: 400 14px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #475569; }
+      .label { font: 600 12px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #475569; }
+      .card { stroke: #cbd5e1; stroke-width: 1.2; rx: 12; filter: url(#shadow); }
+      .inner { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; rx: 8; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.1; marker-end: url(#arrow); }
+      .soft-arrow { fill: none; stroke: #64748b; stroke-width: 1.8; marker-end: url(#arrow); stroke-dasharray: 7 6; }
+      .section-label { font: 700 13px "Microsoft YaHei", "PingFang SC", Arial, sans-serif; fill: #1e293b; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+
+  <text x="600" y="43" text-anchor="middle" class="title">交互式 AI 新闻 Agent 架构设计</text>
+  <text x="600" y="70" text-anchor="middle" class="subtitle">自然语言提问 → DeepSeek 需求收集 → MCP 工具检索真实上下文</text>
+  <text x="600" y="92" text-anchor="middle" class="subtitle">中文新闻摘要 → JSONL 缓存 → 实验复盘</text>
+
+  <!-- User and CLI -->
+  <rect x="58" y="130" width="190" height="112" fill="#ffffff" class="card"/>
+  <text x="153" y="165" text-anchor="middle" class="box-title">用户</text>
+  <text x="153" y="193" text-anchor="middle" class="box-text">自然语言输入</text>
+  <text x="153" y="216" text-anchor="middle" class="small">例如：今天 AI Agent 新闻 5 条</text>
+
+  <rect x="320" y="116" width="250" height="142" fill="url(#cliGrad)" class="card"/>
+  <text x="445" y="151" text-anchor="middle" class="box-title">CLI 交互入口</text>
+  <text x="445" y="179" text-anchor="middle" class="box-text">ai-news start</text>
+  <text x="445" y="202" text-anchor="middle" class="small">彩色 “你&gt; / 助手&gt;” 对话界面</text>
+  <text x="445" y="224" text-anchor="middle" class="small">终端直接输出，不生成 Markdown 日报</text>
+
+  <path d="M248 186 C278 186 290 186 320 186" class="arrow"/>
+  <text x="284" y="175" text-anchor="middle" class="label">提问</text>
+
+  <!-- DeepSeek intake -->
+  <rect x="650" y="110" width="250" height="154" fill="url(#modelGrad)" class="card"/>
+  <text x="775" y="145" text-anchor="middle" class="box-title">DeepSeek Intake</text>
+  <text x="775" y="174" text-anchor="middle" class="box-text">对话式需求收集</text>
+  <text x="775" y="198" text-anchor="middle" class="small">主题 / 时间范围 / 新闻数量</text>
+  <text x="775" y="221" text-anchor="middle" class="small">缺信息时追问</text>
+  <text x="775" y="244" text-anchor="middle" class="small">完整后调用 submit_news_request</text>
+
+  <path d="M570 186 C602 186 618 186 650 186" class="arrow"/>
+  <text x="610" y="175" text-anchor="middle" class="label">intake messages</text>
+
+  <!-- Agent orchestration -->
+  <rect x="455" y="332" width="310" height="176" fill="url(#agentGrad)" class="card"/>
+  <text x="610" y="366" text-anchor="middle" class="box-title">Agent 编排层</text>
+  <text x="610" y="397" text-anchor="middle" class="box-text">run_interactive_session / run_chat</text>
+  <text x="610" y="421" text-anchor="middle" class="small">解析结构化请求 {question, hours, top_k}</text>
+  <text x="610" y="444" text-anchor="middle" class="small">维护 accumulated news state</text>
+  <text x="610" y="467" text-anchor="middle" class="small">执行 tool calls 并回填 tool results</text>
+  <text x="610" y="490" text-anchor="middle" class="small">清洗模型输出和异常换行</text>
+
+  <path d="M775 264 C775 310 735 322 765 362" class="arrow"/>
+  <text x="813" y="310" class="label">结构化请求</text>
+
+  <!-- MCP server -->
+  <rect x="835" y="332" width="300" height="300" fill="url(#mcpGrad)" class="card"/>
+  <text x="985" y="366" text-anchor="middle" class="box-title">本地 MCP Server</text>
+  <text x="985" y="390" text-anchor="middle" class="box-text">FastMCP 暴露工具技能</text>
+
+  <rect x="862" y="414" width="248" height="34" class="inner"/>
+  <text x="986" y="436" text-anchor="middle" class="small">fetch_rss_items：RSS/Atom 抓取</text>
+  <rect x="862" y="455" width="248" height="34" class="inner"/>
+  <text x="986" y="477" text-anchor="middle" class="small">search_arxiv_papers：论文检索</text>
+  <rect x="862" y="496" width="248" height="34" class="inner"/>
+  <text x="986" y="518" text-anchor="middle" class="small">search_hackernews_stories：社区检索</text>
+  <rect x="862" y="537" width="248" height="34" class="inner"/>
+  <text x="986" y="559" text-anchor="middle" class="small">extract_article_text：正文抽取</text>
+  <rect x="862" y="578" width="248" height="34" class="inner"/>
+  <text x="986" y="600" text-anchor="middle" class="small">deduplicate_and_rank：去重排序</text>
+
+  <path d="M765 420 C792 420 807 420 835 420" class="arrow"/>
+  <text x="799" y="407" text-anchor="middle" class="label">MCP tool calls</text>
+  <path d="M835 469 C806 469 793 469 765 469" class="soft-arrow"/>
+  <text x="800" y="492" text-anchor="middle" class="label">tool results</text>
+
+  <!-- External sources -->
+  <rect x="835" y="650" width="300" height="68" fill="#ffffff" class="card"/>
+  <text x="985" y="678" text-anchor="middle" class="box-title">外部上下文来源</text>
+  <text x="985" y="704" text-anchor="middle" class="small">OpenAI/GitHub/arXiv/HN Algolia/Article Pages</text>
+  <path d="M985 612 C985 628 985 634 985 650" class="arrow"/>
+
+  <!-- DeepSeek final answer -->
+  <rect x="82" y="346" width="280" height="148" fill="url(#modelGrad)" class="card"/>
+  <text x="222" y="381" text-anchor="middle" class="box-title">DeepSeek 总结生成</text>
+  <text x="222" y="410" text-anchor="middle" class="box-text">只基于 tool results 回答</text>
+  <text x="222" y="434" text-anchor="middle" class="small">中文编号新闻列表</text>
+  <text x="222" y="457" text-anchor="middle" class="small">标题 / 来源 / 时间 / 摘要 / 重要性 / 链接</text>
+
+  <path d="M455 420 C415 420 398 420 362 420" class="soft-arrow"/>
+  <text x="407" y="407" text-anchor="middle" class="label">上下文回填</text>
+
+  <!-- Terminal output -->
+  <rect x="70" y="584" width="300" height="110" fill="#ffffff" class="card"/>
+  <text x="220" y="619" text-anchor="middle" class="box-title">终端输出</text>
+  <text x="220" y="648" text-anchor="middle" class="box-text">彩色对话标签 + Rich 高亮</text>
+  <text x="220" y="672" text-anchor="middle" class="small">soft_wrap 避免 URL/英文词异常断行</text>
+  <path d="M222 494 C222 532 222 548 222 584" class="arrow"/>
+
+  <!-- Cache -->
+  <rect x="455" y="590" width="310" height="128" fill="#ffffff" class="card"/>
+  <text x="610" y="624" text-anchor="middle" class="box-title">JSONL 会话缓存</text>
+  <text x="610" y="653" text-anchor="middle" class="box-text">cache/conversations/{session}.jsonl</text>
+  <text x="610" y="678" text-anchor="middle" class="small">intake_user / intake_assistant / intake_request</text>
+  <text x="610" y="701" text-anchor="middle" class="small">tool_call / tool_result / assistant / error</text>
+  <path d="M610 508 C610 542 610 557 610 590" class="arrow"/>
+  <text x="646" y="557" class="label">过程留痕</text>
+
+
+</svg>

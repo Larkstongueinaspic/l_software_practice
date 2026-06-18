@@ -28,6 +28,27 @@ def test_sanitize_assistant_output_removes_markdown_decoration():
     assert "__" not in sanitized
 
 
+def test_sanitize_assistant_output_merges_unexpected_wrapped_lines():
+    content = """1. OpenAI releases
+new model
+来源：
+OpenAI
+时间：2026-06-18
+摘要：这是第一行
+这是被模型硬换行拆开的第二行
+重要性：影响开发者
+链接：https://example.com/
+path"""
+
+    sanitized = sanitize_assistant_output(content)
+
+    assert "1. OpenAI releases new model" in sanitized
+    assert "来源：OpenAI" in sanitized
+    assert "摘要：这是第一行 这是被模型硬换行拆开的第二行" in sanitized
+    assert "链接：https://example.com/path" in sanitized
+    assert "\nnew model" not in sanitized
+
+
 def test_mock_intake_asks_for_missing_required_fields():
     response = mock_intake_response("我想看AI新闻")
 

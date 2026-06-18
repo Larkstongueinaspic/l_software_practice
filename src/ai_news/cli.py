@@ -8,6 +8,7 @@ from datetime import datetime
 import httpx
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 from ai_news.agent import run_chat, run_interactive_session
@@ -21,6 +22,40 @@ from ai_news.conversation_cache import ConversationCache
 
 app = typer.Typer(help="Daily AI News Intelligence Agent")
 console = Console()
+
+
+USER_LABEL = "你>"
+ASSISTANT_LABEL = "助手>"
+
+
+def prompt_user(prompt: str = "") -> str:
+    if prompt.strip() == USER_LABEL:
+        return console.input(f"[bold cyan]{USER_LABEL}[/bold cyan] ")
+    return console.input(prompt)
+
+
+def render_labelled_message(message: str, label: str, style: str) -> str:
+    rest = message[len(label) :]
+    separator = ""
+    if rest.startswith(" "):
+        separator = " "
+        rest = rest[1:]
+    elif rest.startswith("\n"):
+        separator = "\n"
+        rest = rest[1:]
+    return f"[{style}]{label}[/{style}]{separator}{escape(rest)}"
+
+
+def print_message(message: str) -> None:
+    if message.startswith(ASSISTANT_LABEL):
+        rendered = render_labelled_message(message, ASSISTANT_LABEL, "bold green")
+        console.print(rendered, markup=True, highlight=True, soft_wrap=True)
+        return
+    if message.startswith(USER_LABEL):
+        rendered = render_labelled_message(message, USER_LABEL, "bold cyan")
+        console.print(rendered, markup=True, highlight=True, soft_wrap=True)
+        return
+    console.print(escape(message), markup=True, highlight=True, soft_wrap=True)
 
 
 def default_interactive_session_id() -> str:
@@ -37,8 +72,8 @@ def start(
     asyncio.run(
         run_interactive_session(
             session_id=session_id,
-            input_func=console.input,
-            output_func=console.print,
+            input_func=prompt_user,
+            output_func=print_message,
             mock_llm=mock_llm,
         )
     )
@@ -105,7 +140,7 @@ def chat(
     result = asyncio.run(
         run_chat(question=question, hours=hours, top_k=top_k, session_id=session, mock_llm=mock_llm)
     )
-    console.print(result["content"])
+    print_message(result["content"])
 
 
 @app.command()
